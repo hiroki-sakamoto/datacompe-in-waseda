@@ -1,5 +1,3 @@
 # datacompe-in-waseda
 
-"""
-早稲田大学のデータコンペティション２０２０で使ったソースコードです。
-"""
+This is the source code which used for datacompe in waseda.

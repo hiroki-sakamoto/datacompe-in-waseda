@@ -1,9 +1,12 @@
 """
 今回の分析では大学生・大学院生のファッションに対する価値観をいくつかのクラスに分類する
-対象者に行った17の質問（消費意識、ファッション意識、生活意識価値観）をもとに、対象者をいくつかのクラスに分ける
+対象者に行った18の質問（消費意識、ファッション意識、生活意識価値観）をもとに、対象者をいくつかのクラスに分ける
 詳しくは、Evernote⑤-0に書いた
-17の質問の選び方についてはEvernote⑤-1に書いた
-（追記）因子数を５にしたとき、因子の特徴が２、３、５で見分けがつかなくなってしまったので、因子数を変更する
+18の質問の選び方についてはEvernote⑤-1に書いた
+（追記）因子数を4にしたとき、因子の特徴が２、３、５で見分けがつかなくなってしまったので、因子数３に変更する
+（追記１）因子数3の場合だと２と3の違いがよくわからん
+（追記２）因子数4の場合だとうまくいきそう
+（追記３）因子数4で質問を一つ増やし１８にしてみる
 """
 %matplotlib inline
 import numpy as np
@@ -26,7 +29,7 @@ df2_1 = pd.read_csv("parts-file02.csv", usecols=[16,17,20,23])
 #ファッション意識の質問項目を抽出
 df2_2 = pd.read_csv("parts-file03.csv", usecols=[12,17,20,22,38,41,42,43,48,50,134])
 #生活意識・価値観の質問項目を抽出
-df2_3 = pd.read_csv("parts-file05.csv", usecols=[38,41])
+df2_3 = pd.read_csv("parts-file05.csv", usecols=[15,38,41])
 
 #0列目に大学生・大学院生、1列目以降に質問項目
 df3 = pd.concat([df1, df2_1, df2_2, df2_3], axis=1)
@@ -54,8 +57,9 @@ df_new = df_new.rename(columns={
     "CCAB_37":"m",
     "CCAB_39":"n",
     "CCAC":"o",
-    "CEAA_35":"p",
-    "CEAA_38":"q",
+    "CEAA_12":"p",
+    "CEAA_35":"q",
+    "CEAA_38":"r",
 }
 )
 
@@ -63,7 +67,7 @@ df_new
 
 
 """
-設問数が17と多いので設問を縮約する
+設問数が18と多いので設問を縮約する
 そのために因子分析を行う
 まずは、因子数を決定する
 """
@@ -90,6 +94,7 @@ df_new_s = df_new_s.rename(columns={
     14:"o",
     15:"p",
     16:"q",
+    17:"r",
 }
 )
 
@@ -116,7 +121,7 @@ pd.DataFrame(ev,
 計算された固有値をもとにスクリープロットを描く
 """
 #固有値1の基準線
-ev_1 = np.ones(17)
+ev_1 = np.ones(18)
 
 # 変数を指定
 plt.plot(ev, 's-')   # 主成分分析による固有値
@@ -131,7 +136,7 @@ plt.show()
 
 
 """
-因子数の決定基準はいくつかあるが、今回はガットマン基準（固有値が１以上の因子を採用）を使って推定する
+因子数の決定基準はいくつかあるが、まずガットマン基準（固有値が１以上の因子を採用）を使って推定する
 その場合、上のスクリープロットから因子数は3とすることができる
 ガットマン基準により因子数を推定できたが、一応累積寄与率が60%以上となる因子数もみてみる
 """
@@ -157,9 +162,10 @@ plt.show()
 """結果；
 ・ガットマン基準；3
 ・寄与率60%以上で因子を採用；5
+・それら意外だと；４
 
-今回の分析では前者を選択しようと思う
-つまり、因子数を3に決定
+因子数５より3の方が因子名を作りやすかった
+一応、因子数４でも分析してみる
 """
 
 
@@ -170,7 +176,7 @@ plt.show()
 from sklearn.decomposition import FactorAnalysis as FA
 
 #因子数を指定
-n_components=3
+n_components=4
 
 #因子分析の実行
 fa = FA(n_components, max_iter=5000) #モデルを定義
@@ -186,7 +192,7 @@ print(fa.components_.T)
 
 
 """
-17の設問に対する各因子の解釈を行う
+18の設問に対する各因子の解釈を行う
 各因子の解釈はEvernote⑤-2に書いた
 """
 #変数Factor_loading_matrixに格納
@@ -194,7 +200,7 @@ Factor_loading_matrix = fa.components_.T
 
 #因子の解釈をやりやすくするため、データフレームに変換
 Factor_loading_matrix = pd.DataFrame(Factor_loading_matrix, 
-             columns=["第1因子", "第2因子", "第3因子"], 
+             columns=["第1因子", "第2因子", "第3因子", "第4因子"], 
              index=[df_new_s.columns])
 
 Factor_loading_matrix
@@ -202,7 +208,7 @@ Factor_loading_matrix
 
 """
 解釈が行いやすいようにグラフでも見てみる
-縦が因子得点、横が質問番号
+縦が因子負荷量、横が質問番号
 """
 import japanize_matplotlib
 Factor_loading_matrix.plot(figsize=(9, 9))
@@ -214,7 +220,7 @@ Factor_loading_matrix.plot(figsize=(9, 9))
 """
 #まずはデータの情報をデータフレームで再度確認する
 df_new_pro = pd.DataFrame(df_new_pro, 
-             columns=["第1因子", "第2因子", "第3因子"], 
+             columns=["第1因子", "第2因子", "第3因子", "第4因子"], 
             )
 df_new_pro
 
@@ -224,7 +230,7 @@ df_new_pro.describe()
 
 
 """
-因子得点のまま、クラスター分析を行う方法と、データを標準化してクラスター分析を行う方法があるが、
+因子得点のまま、クラスター分析を行う方法と、因子得点のデータを標準化してクラスター分析を行う方法があるが、
 今回は後者を採用
 前者の場合とも比較してみる
 """
@@ -232,8 +238,9 @@ df_new_pro.describe()
 from sklearn import preprocessing
 
 ss = preprocessing.StandardScaler()
-df_new_pro_s = pd.DataFrame(ss.fit_transform(df_new_pro))
-
+df_new_pro_s = pd.DataFrame(ss.fit_transform(df_new_pro), 
+               columns=["第1因子", "第2因子", "第3因子", "第4因子"],
+                )
 df_new_pro_s
 
 
@@ -305,7 +312,7 @@ def highlight_min(s):
 
 df_new_pro_clust_gp_sm.style.apply(highlight_max)
 
-#ちなみに縦が5つの因子、横がクラスID
+#ちなみに縦が４つの因子、横がクラスID
 
 
 df_new_pro_clust_gp_sm.style.apply(highlight_min)
@@ -313,11 +320,11 @@ df_new_pro_clust_gp_sm.style.apply(highlight_min)
 
 """
 このデータの見方；
-クラス０は主に第1因子に（正に）影響されている、第2因子にも（負に）少し影響されている
-クラス１は主に第3因子に（負に）影響されている
-クラス２は主に第3因子に（正に）影響されている
-クラス３は第1因子は（負に）、第2因子は（正に）影響されている
-クラス４は第1因子は（負に強く）、第2因子は（負に）影響されている
+クラス０は第2因子に（正に）、第1因子に（負に）影響されている
+クラス１は主に第1因子に（負に強く）影響されている
+クラス２は第1因子に（正に）、第3因子に（負に）影響されている
+クラス３は主に第3因子に（正に強く）影響されている
+クラス４は第4因子は（正に）、第2因子に（負に）影響されている
 """
 
 
